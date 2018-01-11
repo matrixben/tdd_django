@@ -2,6 +2,7 @@ from selenium import webdriver
 import unittest
 
 
+# 功能测试
 class NewVisitorTest(unittest.TestCase):
     def setUp(self):
         self.browser = webdriver.Chrome()
