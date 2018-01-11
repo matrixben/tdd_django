@@ -12,11 +12,12 @@ class NewVisitorTest(unittest.TestCase):
     def testWhenOpenDjangoThenDisplayTODOListAPP(self):
         # Jason听说有一个很酷的在线待办事项应用
         # 他去看了这个应用的首页
-        self.browser.get('http://localhost:8000')
+        self.browser.get('http://localhost:8000/todolists/To-Do')
 
         # 他注意到网页的标题和头部都包含"To-Do"这个词
-        self.assertIn('To-Do', self.browser.title)  # 判断前者是否后者的子字符串
-        self.fail('Finish the test!')  # 无论如何,使测试失败并返回其中的字符串
+        #self.assertIn('To-Do', self.browser.title)  # 判断前者是否后者的子字符串
+        self.assertIn('to-do', self.browser.page_source)#.find_elements('to-do'))
+        #self.fail('Finish the test!')  # 无论如何,使测试失败并返回其中的字符串
 
 
 # 应用邀请他输入一个待办事项
