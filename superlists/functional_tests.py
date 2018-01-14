@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 import unittest
 
 
@@ -6,27 +7,37 @@ import unittest
 class NewVisitorTest(unittest.TestCase):
     def setUp(self):
         self.browser = webdriver.Chrome()
+        # Jason听说有一个很酷的在线待办事项应用
+        # 他去看了这个应用的首页
+        self.browser.get('http://localhost:8000/')
 
     def tearDown(self):
         self.browser.quit()
 
     def testWhenOpenDjangoThenDisplayTODOListAPP(self):
-        # Jason听说有一个很酷的在线待办事项应用
-        # 他去看了这个应用的首页
-        self.browser.get('http://localhost:8000/todolists/To-Do')
-
         # 他注意到网页的标题和头部都包含"To-Do"这个词
-        #self.assertIn('To-Do', self.browser.title)  # 判断前者是否后者的子字符串
-        self.assertIn('to-do', self.browser.page_source)#.find_elements('to-do'))
-        #self.fail('Finish the test!')  # 无论如何,使测试失败并返回其中的字符串
+        self.assertIn('To-Do', self.browser.title)  # 判断前者是否后者的子字符串
+        html_head = self.browser.find_element_by_tag_name("h1")
+        self.assertIn('To-Do', html_head.text)
+        # self.fail('Finish the test!')  # 无论如何,使测试失败并返回其中的字符串
 
+    def testWhenOpenAppThenCanInputText(self):
+        # 应用邀请他输入一个待办事项
+        input_box = self.browser.find_element_by_id("id_new_item")
+        self.assertEqual(input_box.get_attribute('placeholder'), 'Please enter your to-do item.')
 
-# 应用邀请他输入一个待办事项
-
-# 他在一个文本框中输入"learn django in a month"
-
-# 他按回车键后,页面更新了
-# 待办事项表格中显示了"1.learn django in a month"
+    def testWhenInputAndEnterThenSaveItem(self):
+        # 他在一个文本框中输入"learn django in a month"
+        input_text = "1. learn django in a month"
+        input_box = self.browser.find_element_by_id("id_new_item")
+        input_box.send_keys(input_text)
+        # 他按回车键后,页面更新了
+        input_box.send_keys(Keys.ENTER)
+        # 待办事项表格中显示了"1.learn django in a month"
+        table = self.browser.find_element_by_id("id_list_table")
+        rows = table.find_elements_by_tag_name("tr")
+        self.assertTrue(any(row.text == input_text for row in rows),
+                        "New item did not appear in the table")
 
 # 页面中又显示了一个文本框,可以输入其他的待办事项
 # 他输入了"write a new virtual currency base on open source coin"
