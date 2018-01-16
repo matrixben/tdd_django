@@ -28,7 +28,7 @@ class NewVisitorTest(unittest.TestCase):
 
     def testWhenInputAndEnterThenSaveItem(self):
         # 他在一个文本框中输入"learn django in a month"
-        input_text = "1. learn django in a month"
+        input_text = "learn django in a month"
         input_box = self.browser.find_element_by_id("id_new_item")
         input_box.send_keys(input_text)
         # 他按回车键后,页面更新了
@@ -38,12 +38,27 @@ class NewVisitorTest(unittest.TestCase):
         rows = table.find_elements_by_tag_name("tr")
         #self.assertTrue(any(row.text == input_text for row in rows),
         #                "New item did not appear in the table")
-        self.assertIn(input_text, [row.text for row in rows])
+        self.assertIn("1. " + input_text, [row.text for row in rows])
 
-# 页面中又显示了一个文本框,可以输入其他的待办事项
-# 他输入了"write a new virtual currency base on open source coin"
+    def testWhenInputAgainThenSaveSecondItem(self):
+        # 页面中又显示了一个文本框,可以输入其他的待办事项
+        # 他输入了"write a new virtual currency base on open source coin"
+        input_text1 = "learn django in a month"
+        input_text2 = "write a new virtual currency base on open source coin"
+        count = 1
+        # 页面再次更新,他的清单中显示了这两个待办事项
+        self.check_for_row_in_list_table(input_text1, count)
+        count = count + 1
+        self.check_for_row_in_list_table(input_text2, count)
 
-# 页面再次更新,他的清单中显示了这两个待办事项
+    def check_for_row_in_list_table(self, row_text, count):
+        input_box = self.browser.find_element_by_id("id_new_item")
+        input_box.send_keys(row_text)
+        input_box.send_keys(Keys.ENTER)
+
+        table = self.browser.find_element_by_id("id_list_table")
+        rows = table.find_elements_by_tag_name("tr")
+        self.assertIn(str(count) + ". " + row_text, [row.text for row in rows])
 
 # Jason想知道这个网站是否会记住他的清单
 
@@ -54,3 +69,8 @@ class NewVisitorTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+    """django启动命令
+    docker run --rm -v "$PWD":/usr/src/app -w /usr/src/app -p 8000:8000 -d django:1.7 bash -c "cd superlists && python3 manage.py runserver 0.0.0.0:8000"
+
+    """
