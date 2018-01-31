@@ -48,6 +48,20 @@ class HomePageTest(TestCase):
         # 没有输入待办事项时不保存数据库
         self.assertEqual(Item.objects.count(), 0)
 
+    def testWhenEnterSecondItemThenShowAllLItems(self):
+        # 输入第二个待办事项后显示全部两个事项,测试将数据库的值传给模板变量
+        input_text1 = 'first item'
+        input_text2 = 'second item'
+
+        Item.objects.create(text=input_text1)
+        Item.objects.create(text=input_text2)
+
+        request = HttpRequest()
+        response = home_page(request)
+
+        self.assertIn(input_text1, response.content.decode())
+        self.assertIn(input_text2, response.content.decode())
+
 
 class ItemModelTest(TestCase):
     def testSaveAndRetrievingItems(self):
