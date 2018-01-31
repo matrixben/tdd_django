@@ -23,7 +23,6 @@ class HomePageTest(TestCase):
         request.POST['item_text'] = input_text
         # 怎么测试视图函数给new_item_text传入正确的值，又怎么把变量传入模板？
         response = home_page(request)
-        # TODO 测试方法太长，要拆分
         self.assertEqual(Item.objects.count(), 1)
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, input_text)
