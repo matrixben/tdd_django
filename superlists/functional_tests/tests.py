@@ -1,9 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import unittest
+from django.test import LiveServerTestCase
 
 
-class NewVisitorTest(unittest.TestCase):
+class NewVisitorTest(LiveServerTestCase):
 
     def setUp(self):
         # Jason听说有一个很酷的在线待办事项应用
@@ -14,7 +14,7 @@ class NewVisitorTest(unittest.TestCase):
 
     def testWhenOpenWebsiteThenShowTodolists(self):
         # 他去看了这个应用的首页
-        self.browser.get('http://localhost:8000')
+        self.browser.get(self.live_server_url) #'http://localhost:8000'
 
         # 他注意到网页的标题和头部都包含"To-Do"这个词
         self.assertIn('To-Do', self.browser.title)
@@ -50,5 +50,7 @@ class NewVisitorTest(unittest.TestCase):
         rows = table.find_elements_by_tag_name("tr")
         self.assertIn(row_text, [row.text for row in rows])
 
+"""
 if __name__ == '__main__':
     unittest.main()
+"""
