@@ -29,8 +29,8 @@ class HomePageTest(TestCase):
 
         # 使用render_to_string的第二个入参传递期望值给模板的变量来测试
         # 在视图函数中使用render的第三个入参传递请求的POST
-        #expect_html = render_to_string('home.html',{'new_item_text': input_text})
-        #self.assertEqual(expect_html, response.content.decode())
+        # expect_html = render_to_string('home.html',{'new_item_text': input_text})
+        # self.assertEqual(expect_html, response.content.decode())
 
     def testWhenEnterThenRedirectToHome(self):
         input_text = 'a new item text'
@@ -40,7 +40,7 @@ class HomePageTest(TestCase):
         response = home_page(request)
         # 在回车后重定向页面到首页
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/')
+        self.assertEqual(response['location'], '/lists/the-only-list-in-the-world/')
 
     def testOnlyInputSomethingThenSaveIntoDB(self):
         request = HttpRequest()
@@ -48,19 +48,23 @@ class HomePageTest(TestCase):
         # 没有输入待办事项时不保存数据库
         self.assertEqual(Item.objects.count(), 0)
 
-    def testWhenEnterSecondItemThenShowAllLItems(self):
-        # 输入第二个待办事项后显示全部两个事项,测试将数据库的值传给模板变量
-        input_text1 = 'first item'
-        input_text2 = 'second item'
+
+class LiveViewTest(TestCase):
+    def testWhenRedirectNewUrlThenDisplayAllItems(self):
+        input_text1 = 'first item in new url'
+        input_text2 = 'second item in new url'
 
         Item.objects.create(text=input_text1)
         Item.objects.create(text=input_text2)
 
-        request = HttpRequest()
-        response = home_page(request)
+        response = self.client.get('/lists/the-only-list-in-the-world/')
 
-        self.assertIn(input_text1, response.content.decode())
-        self.assertIn(input_text2, response.content.decode())
+        self.assertContains(response, input_text1)
+        self.assertContains(response, input_text2)
+
+    def testUseDiffTemplate(self):
+        response = self.client.get('/lists/the-only-list-in-the-world/')
+        self.assertTemplateUsed(response, template_name='list.html')
 
 
 class ItemModelTest(TestCase):

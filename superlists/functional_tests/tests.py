@@ -35,6 +35,9 @@ class NewVisitorTest(LiveServerTestCase):
         # self.assertTrue(any(row.text == input_text for row in rows),
         #                "New item did not appear in the table")
         self.assertIn("1. " + input_text, [row.text for row in rows])
+        # 输入回车后转到新url
+        edith_list_url = self.browser.current_url
+        self.assertRegex(edith_list_url, '/lists/.+') # 检查字符串是否匹配正则表达式
         # 页面中又显示了一个文本框,可以输入其他的待办事项
         input_box = self.browser.find_element_by_id("id_new_item")
         # 他输入了"write a new virtual currency base on open source coin"
@@ -53,4 +56,6 @@ class NewVisitorTest(LiveServerTestCase):
 """
 if __name__ == '__main__':
     unittest.main()
+
+阅读Django官方教程，以巩固知识
 """
