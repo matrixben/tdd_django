@@ -3,7 +3,7 @@ from django.core.urlresolvers import resolve
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from lists.views import home_page
-from lists.models import Item
+from lists.models import Item, List
 
 
 class HomePageTest(TestCase):
@@ -22,8 +22,9 @@ class LiveViewTest(TestCase):
         input_text1 = 'first item in new url'
         input_text2 = 'second item in new url'
 
-        Item.objects.create(text=input_text1)
-        Item.objects.create(text=input_text2)
+        list_ = List.objects.create()
+        Item.objects.create(text=input_text1, list=list_)
+        Item.objects.create(text=input_text2, list=list_)
 
         response = self.client.get('/lists/the-only-list-in-the-world/')
 
@@ -59,15 +60,24 @@ class NewListTest(TestCase):
         self.assertRedirects(response, '/lists/the-only-list-in-the-world/')
 
 
-class ItemModelTest(TestCase):
+class ListAndItemModelTest(TestCase):
     def testSaveAndRetrievingItems(self):
+        # 新建List对象，让待办事项和不同的清单关联起来
+        list_ = List()  # 使用list_是为了区别于原生list函数
+        list_.save()
+
         first_item = Item()
         first_item.text = 'the first list item'
+        first_item.list = list_
         first_item.save()
 
         second_item = Item()
         second_item.text = 'item the second'
+        second_item.list = list_
         second_item.save()
+
+        saved_list = List.objects.first()
+        self.assertEqual(saved_list, list_)
 
         saved_items = Item.objects.all()
         self.assertEqual(saved_items.count(), 2)
@@ -75,4 +85,6 @@ class ItemModelTest(TestCase):
         first_saved_item = saved_items[0]
         second_saved_item = saved_items[1]
         self.assertEqual(first_saved_item.text, first_item.text)
+        self.assertEqual(first_saved_item.list, list_)
         self.assertEqual(second_saved_item.text, second_item.text)
+        self.assertEqual(second_saved_item.list, list_)
