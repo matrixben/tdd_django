@@ -18,22 +18,36 @@ class HomePageTest(TestCase):
 
 
 class LiveViewTest(TestCase):
-    def testWhenRedirectNewUrlThenDisplayAllItems(self):
+    def testWhenRedirectNewUrlThenDisplayOnlyItemsForTheList(self):
         input_text1 = 'first item in new url'
         input_text2 = 'second item in new url'
 
-        list_ = List.objects.create()
-        Item.objects.create(text=input_text1, list=list_)
-        Item.objects.create(text=input_text2, list=list_)
+        list_one = List.objects.create()
+        Item.objects.create(text=input_text1, list=list_one)
+        Item.objects.create(text=input_text2, list=list_one)
 
-        response = self.client.get('/lists/the-only-list-in-the-world/')
+        list_two = List.objects.create()
+        Item.objects.create(text="something else 1", list=list_two)
+        Item.objects.create(text="something else 2", list=list_two)
+
+        response = self.client.get('/lists/%d/' % (list_one.id,))
 
         self.assertContains(response, input_text1)
         self.assertContains(response, input_text2)
+        self.assertNotContains(response, "something else 1")
+        self.assertNotContains(response, "something else 2")
 
     def testUseDiffTemplate(self):
-        response = self.client.get('/lists/the-only-list-in-the-world/')
+        list_ = List.objects.create()
+        response = self.client.get('/lists/%d/' % (list_.id,))
         self.assertTemplateUsed(response, template_name='list.html')
+
+    def testPassCorrectListToTemplate(self):
+        other_list = List.objects.create()
+        correct_list = List.objects.create()
+
+        response = self.client.get('/lists/%d/' % (correct_list.id,))
+        self.assertEqual(response.context['list'], correct_list)
 
 
 class NewListTest(TestCase):
@@ -57,7 +71,30 @@ class NewListTest(TestCase):
         # 发送请求后重定向
         self.assertEqual(response.status_code, 302)
         # 在回车后重定向页面到首页
-        self.assertRedirects(response, '/lists/the-only-list-in-the-world/')
+        new_list = List.objects.first()
+        self.assertRedirects(response, '/lists/%d/' % (new_list.id,))
+
+
+class NewItemTest(TestCase):
+    # 把新的待办事项加入到现有的清单中,而不是一个url只保存一个待办事项
+    def testWhenSavePOSTThenToExistingList(self):
+        other_list = List.objects.create()
+        correct_list = List.objects.create()
+        input_text = "first item for the list"
+        self.client.post('/lists/%d/add_item' % (correct_list.id,), data={'item_text': input_text})
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, input_text)
+        self.assertEqual(new_item.list, correct_list)
+
+    def testWhenEnterThenRedirectToListView(self):
+        input_text = 'a new item text'
+        new_list = List.objects.create()
+        response = self.client.post('/lists/%d/add_item' % (new_list.id,), data={'item_text': input_text})
+        # 发送请求后重定向
+        self.assertEqual(response.status_code, 302)
+        # 在回车后重定向页面到清单列表页
+        self.assertRedirects(response, '/lists/%d/' % (new_list.id,))
 
 
 class ListAndItemModelTest(TestCase):
