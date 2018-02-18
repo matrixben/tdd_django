@@ -16,38 +16,6 @@ class HomePageTest(TestCase):
         response = home_page(request)
         self.assertEqual(render_to_string('home.html'), response.content.decode())
 
-    def testWhenEnterThenSavePOSTRequest(self):
-        input_text = 'a new item text'
-        request = HttpRequest()
-        request.method = 'POST'
-        request.POST['item_text'] = input_text
-        # 怎么测试视图函数给new_item_text传入正确的值，又怎么把变量传入模板？
-        response = home_page(request)
-        self.assertEqual(Item.objects.count(), 1)
-        new_item = Item.objects.first()
-        self.assertEqual(new_item.text, input_text)
-
-        # 使用render_to_string的第二个入参传递期望值给模板的变量来测试
-        # 在视图函数中使用render的第三个入参传递请求的POST
-        # expect_html = render_to_string('home.html',{'new_item_text': input_text})
-        # self.assertEqual(expect_html, response.content.decode())
-
-    def testWhenEnterThenRedirectToHome(self):
-        input_text = 'a new item text'
-        request = HttpRequest()
-        request.method = 'POST'
-        request.POST['item_text'] = input_text
-        response = home_page(request)
-        # 在回车后重定向页面到首页
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/lists/the-only-list-in-the-world/')
-
-    def testOnlyInputSomethingThenSaveIntoDB(self):
-        request = HttpRequest()
-        home_page(request)
-        # 没有输入待办事项时不保存数据库
-        self.assertEqual(Item.objects.count(), 0)
-
 
 class LiveViewTest(TestCase):
     def testWhenRedirectNewUrlThenDisplayAllItems(self):
@@ -65,6 +33,30 @@ class LiveViewTest(TestCase):
     def testUseDiffTemplate(self):
         response = self.client.get('/lists/the-only-list-in-the-world/')
         self.assertTemplateUsed(response, template_name='list.html')
+
+
+class NewListTest(TestCase):
+    def testWhenEnterThenSavePOSTRequest(self):
+        input_text = 'a new item text'
+        # 修改数据库的操作返回的新url不以斜杠结尾
+        self.client.post('/lists/new', data={'item_text': input_text})
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, input_text)
+
+        # 怎么测试视图函数给new_item_text传入正确的值，又怎么把变量传入模板？
+        # 使用render_to_string的第二个入参传递期望值给模板的变量来测试
+        # 在视图函数中使用render的第三个入参传递请求的POST
+        # expect_html = render_to_string('home.html',{'new_item_text': input_text})
+        # self.assertEqual(expect_html, response.content.decode())
+
+    def testWhenEnterThenRedirectToHome(self):
+        input_text = 'a new item text'
+        response = self.client.post('/lists/new', data={'item_text': input_text})
+        # 发送请求后重定向
+        self.assertEqual(response.status_code, 302)
+        # 在回车后重定向页面到首页
+        self.assertRedirects(response, '/lists/the-only-list-in-the-world/')
 
 
 class ItemModelTest(TestCase):

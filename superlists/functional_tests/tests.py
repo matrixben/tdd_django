@@ -36,8 +36,8 @@ class NewVisitorTest(LiveServerTestCase):
         #                "New item did not appear in the table")
         self.assertIn("1. " + input_text, [row.text for row in rows])
         # 输入回车后转到新url
-        edith_list_url = self.browser.current_url
-        self.assertRegex(edith_list_url, '/lists/.+') # 检查字符串是否匹配正则表达式
+        jason_list_url = self.browser.current_url
+        self.assertRegex(jason_list_url, '/lists/.+') # 检查字符串是否匹配正则表达式
         # 页面中又显示了一个文本框,可以输入其他的待办事项
         input_box = self.browser.find_element_by_id("id_new_item")
         # 他输入了"write a new virtual currency base on open source coin"
@@ -47,6 +47,29 @@ class NewVisitorTest(LiveServerTestCase):
         # 待办事项表格中显示了之前输入的两个待办事项
         self.check_for_row_in_list_table("1. "+input_text)
         self.check_for_row_in_list_table("2. "+input_text2)
+        # 现在一个叫做Yvonne的新用户访问了网站
+        # 退出当前浏览器，打开新的浏览器窗口
+        self.browser.quit()
+        self.browser = webdriver.Chrome()
+        # Yvonne看不到Jason的清单
+        self.browser.get(self.live_server_url)
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn(input_text, page_text)
+        self.assertNotIn(input_text2, page_text)
+        # Yvonne创建一个新的待办事项: Buy milk
+        input_box = self.browser.find_element_by_id("id_new_item")
+        input_text3 = "Buy milk"
+        input_box.send_keys(input_text3)
+        input_box.send_keys(Keys.ENTER)
+        # Yvonne获得了她的唯一URL
+        yvonne_list_url = self.browser.current_url
+        self.assertRegex(yvonne_list_url, '/lists/.+')
+        self.assertNotEqual(yvonne_list_url, jason_list_url)
+        # 这个页面还是没有jason的清单,但保存着Yvonne的清单
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn(input_text, page_text)
+        self.assertIn(input_text3, page_text)
+        # END
 
     def check_for_row_in_list_table(self, row_text):
         table = self.browser.find_element_by_id("id_list_table")
